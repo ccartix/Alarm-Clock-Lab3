@@ -6,13 +6,12 @@ const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
-const SECRET_KEY = 'your-secret-key';
 
 app.use(cors());
 app.use(express.json());
 
 // Ініціалізація бази даних
-const db = new sqlite3.Database(':memory:', (err) => {
+const db = new sqlite3.Database('./alarms.db', (err) => {
     if (err) {
         console.error('Database error:', err.message);
     } else {
@@ -74,7 +73,7 @@ app.post('/api/login', (req, res) => {
             console.error('Login error: Invalid password');
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id, email: user.email }, 'secret', { expiresIn: '1h' });
         console.log(`User logged in: ${email}, Token: ${token}`);
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, gender: user.gender, dob: user.dob } });
     });
@@ -88,7 +87,7 @@ const authenticate = (req, res, next) => {
         return res.status(401).json({ error: 'No token provided' });
     }
     try {
-        const decoded = jwt.verify(token, SECRET_KEY);
+        const decoded = jwt.verify(token, 'secret');
         req.user = decoded;
         next();
     } catch (error) {
